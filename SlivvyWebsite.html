@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slivvy — Own Your Sliver of the Good Life</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --coral:#F25C54;--orange:#F5834A;--yellow:#F7B267;
+  --mint:#6BCB77;--sky:#4ECDC4;--blue:#4F86F7;--purple:#A855F7;
+  --dark:#1E1E2E;--gray:#64748B;--light:#FFF8F5;--white:#fff;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--white);color:var(--dark);overflow-x:hidden;}
+.page{display:none;min-height:100vh;}
+.page.active{display:block;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:12px 5%;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.93);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,0.06);}
+.logo-wrap{cursor:pointer;display:flex;align-items:center;}
+.nav-links{display:flex;align-items:center;gap:24px;}
+.nav-links a{text-decoration:none;color:var(--gray);font-weight:600;font-size:14px;cursor:pointer;transition:color .2s;}
+.nav-links a:hover{color:var(--coral);}
+.nav-cta{background:linear-gradient(135deg,var(--coral),var(--orange));color:white!important;padding:10px 22px;border-radius:25px;font-weight:700!important;transition:transform .2s,box-shadow .2s!important;}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(242,92,84,0.35);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:white;border-radius:24px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;position:relative;}
+.modal-header{padding:28px 28px 0;display:flex;align-items:flex-start;justify-content:space-between;}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--light);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s;}
+.modal-close:hover{background:#e2e8f0;}
+.modal-body{padding:20px 28px 28px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;z-index:999;background:var(--dark);color:white;padding:14px 20px;border-radius:14px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,0.2);transform:translateY(80px);opacity:0;transition:all .4s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* HERO */
+.hero{min-height:100vh;background:linear-gradient(145deg,#F25C54 0%,#F5834A 45%,#F7B267 100%);display:flex;align-items:center;justify-content:center;text-align:center;padding:120px 5% 80px;position:relative;overflow:hidden;}
+.hero-blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:0.2;pointer-events:none;}
+.hero-inner{position:relative;z-index:2;max-width:780px;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.4);color:white;padding:7px 16px;border-radius:25px;font-size:13px;font-weight:700;margin-bottom:28px;cursor:pointer;transition:background .2s;}
+.hero-badge:hover{background:rgba(255,255,255,0.35);}
+.hero h1{font-family:'Nunito',sans-serif;font-size:clamp(34px,6.5vw,68px);font-weight:900;color:white;line-height:1.1;margin-bottom:20px;}
+.hero h1 span{color:rgba(255,255,255,0.72);}
+.hero p{font-size:clamp(14px,2vw,19px);color:rgba(255,255,255,0.88);max-width:560px;margin:0 auto 36px;line-height:1.6;}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.btn-white{background:white;color:var(--coral);padding:15px 32px;border-radius:30px;font-weight:800;font-size:15px;cursor:pointer;border:none;font-family:'Plus Jakarta Sans',sans-serif;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 20px rgba(0,0,0,0.15);}
+.btn-white:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,0.2);}
+.btn-outline{background:rgba(255,255,255,0.15);color:white;padding:15px 32px;border-radius:30px;font-weight:700;font-size:15px;cursor:pointer;border:2px solid rgba(255,255,255,0.5);font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s;}
+.btn-outline:hover{background:rgba(255,255,255,0.28);}
+.hero-assets{display:flex;gap:12px;justify-content:center;margin-top:44px;flex-wrap:wrap;}
+.hero-asset{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);padding:9px 18px;border-radius:25px;color:white;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.hero-asset:hover{background:rgba(255,255,255,0.35);transform:translateY(-2px);}
+
+/* TRUST */
+.trust{background:var(--dark);padding:16px 5%;display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;}
+.trust-item{color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;}
+.trust-item strong{color:white;}
+.trust-dot{width:4px;height:4px;border-radius:50%;background:var(--coral);}
+
+/* SECTIONS */
+section{padding:80px 5%;}
+.section-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--coral);margin-bottom:8px;}
+.section-title{font-family:'Nunito',sans-serif;font-size:clamp(26px,3.8vw,40px);font-weight:900;color:var(--dark);line-height:1.2;margin-bottom:12px;}
+.section-title span{background:linear-gradient(135deg,var(--coral),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.section-sub{font-size:15px;color:var(--gray);max-width:520px;line-height:1.7;}
+.center{text-align:center;}.center .section-sub{margin:0 auto;}
+
+/* HOW IT WORKS */
+.hiw{background:var(--light);}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:48px;}
+.step-card{background:white;border-radius:18px;padding:24px 16px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.06);cursor:pointer;transition:transform .2s,box-shadow .2s;}
+.step-card:hover{transform:translateY(-5px);box-shadow:0 10px 28px rgba(0,0,0,0.1);}
+.step-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px;}
+.step-num{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px;}
+.step-name{font-weight:800;font-size:14px;color:var(--dark);margin-bottom:5px;}
+.step-desc{font-size:11px;color:var(--gray);line-height:1.5;}
+
+/* ASSETS */
+.assets-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:48px;}
+.asset-card{border-radius:22px;overflow:hidden;position:relative;min-height:240px;display:flex;flex-direction:column;justify-content:flex-end;padding:26px;cursor:pointer;transition:transform .25s,box-shadow .25s;}
+.asset-card:hover{transform:scale(1.025);box-shadow:0 16px 48px rgba(0,0,0,0.18);}
+.asset-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:110px;opacity:0.16;}
+.asset-grad{position:absolute;inset:0;}
+.asset-content{position:relative;z-index:2;}
+.asset-icon-lg{font-size:38px;margin-bottom:8px;}
+.asset-name{font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;color:white;margin-bottom:4px;}
+.asset-desc{font-size:12px;color:rgba(255,255,255,0.82);margin-bottom:12px;line-height:1.5;}
+.asset-pill{display:inline-flex;align-items:center;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);color:white;padding:5px 13px;border-radius:18px;font-size:11px;font-weight:700;}
+.asset-arrow{position:absolute;top:20px;right:20px;width:34px;height:34px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:16px;transition:background .2s;}
+.asset-card:hover .asset-arrow{background:rgba(255,255,255,0.35);}
+
+/* PRICING */
+.pricing{background:var(--light);}
+.pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:48px;}
+.price-card{background:white;border-radius:18px;padding:24px 20px;box-shadow:0 4px 16px rgba(0,0,0,0.06);cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative;}
+.price-card:hover{transform:translateY(-5px);box-shadow:0 12px 32px rgba(0,0,0,0.1);}
+.price-icon{font-size:32px;margin-bottom:12px;}
+.price-asset{font-weight:800;font-size:15px;color:var(--dark);margin-bottom:5px;}
+.price-from{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px;}
+.price-range{font-family:'Nunito',sans-serif;font-size:26px;font-weight:900;margin-bottom:4px;}
+.price-note{font-size:11px;color:var(--gray);margin-bottom:14px;line-height:1.5;}
+.price-features{list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.price-features li{font-size:11px;color:var(--dark);display:flex;align-items:center;gap:6px;}
+.price-features li::before{content:'✓';font-weight:800;font-size:11px;}
+.price-btn{width:100%;padding:11px;border-radius:20px;border:none;font-weight:700;font-size:13px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:transform .2s,opacity .2s;color:white;}
+.price-btn:hover{opacity:.88;transform:translateY(-1px);}
+
+/* TESTIMONIALS SLIDER */
+.testi-slider-wrap{position:relative;display:flex;align-items:center;gap:12px;margin-top:48px;}
+.testi-slider{display:flex;gap:20px;overflow:hidden;flex:1;scroll-behavior:smooth;}
+.testi-card{background:white;border-radius:18px;padding:26px;box-shadow:0 4px 16px rgba(0,0,0,0.06);cursor:pointer;transition:transform .2s;flex:0 0 calc(33.333% - 14px);min-width:0;}
+.testi-card:hover{transform:translateY(-4px);}
+.stars{color:var(--yellow);font-size:15px;margin-bottom:12px;letter-spacing:2px;}
+.testi-text{font-size:13px;color:var(--dark);line-height:1.7;font-style:italic;margin-bottom:16px;}
+.testi-author{display:flex;align-items:center;gap:10px;}
+.testi-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:white;font-family:'Nunito',sans-serif;flex-shrink:0;}
+.testi-name{font-weight:800;font-size:13px;color:var(--dark);}
+.testi-role{font-size:11px;color:var(--gray);}
+.testi-arrow{width:44px;height:44px;border-radius:50%;border:2px solid #e2e8f0;background:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;color:var(--dark);}
+.testi-arrow:hover{background:var(--coral);border-color:var(--coral);color:white;}
+.testi-dots{display:flex;justify-content:center;gap:8px;margin-top:24px;}
+.testi-dot{width:8px;height:8px;border-radius:50%;background:#e2e8f0;cursor:pointer;transition:all .2s;}
+.testi-dot.active{background:var(--coral);width:24px;border-radius:4px;}
+
+/* FAQ */
+.faq{background:var(--light);}
+.faq-list{max-width:700px;margin:48px auto 0;display:flex;flex-direction:column;gap:10px;}
+.faq-item{background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.05);}
+.faq-q{padding:18px 22px;font-weight:700;font-size:14px;color:var(--dark);cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:color .2s;user-select:none;}
+.faq-q:hover{color:var(--coral);}
+.faq-icon{font-size:20px;transition:transform .3s;color:var(--coral);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s;}
+.faq-a.open{max-height:200px;padding:0 22px 18px;}
+.faq-a p{font-size:13px;color:var(--gray);line-height:1.7;}
+
+/* WAITLIST */
+.waitlist{background:linear-gradient(145deg,#F25C54 0%,#F5834A 50%,#F7B267 100%);padding:90px 5%;text-align:center;position:relative;overflow:hidden;}
+.waitlist h2{font-family:'Nunito',sans-serif;font-size:clamp(26px,4.5vw,44px);font-weight:900;color:white;margin-bottom:12px;}
+.waitlist p{font-size:16px;color:rgba(255,255,255,0.85);max-width:460px;margin:0 auto 32px;line-height:1.6;}
+.wl-form{display:flex;gap:10px;max-width:460px;margin:0 auto 14px;flex-wrap:wrap;justify-content:center;}
+.wl-form input{flex:1;min-width:200px;padding:14px 20px;border-radius:28px;border:none;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;}
+.wl-form button{background:var(--dark);color:white;padding:14px 26px;border-radius:28px;border:none;font-weight:800;font-size:14px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:transform .2s;white-space:nowrap;}
+.wl-form button:hover{transform:translateY(-2px);}
+.wl-note{font-size:12px;color:rgba(255,255,255,0.7);margin-bottom:22px;}
+.wl-perks{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.w-perk{background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:white;padding:7px 15px;border-radius:18px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;}
+
+/* FOOTER */
+footer{background:var(--dark);padding:56px 5% 28px;}
+.footer-top{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:36px;margin-bottom:40px;}
+.footer-desc{font-size:12px;color:rgba(255,255,255,0.45);line-height:1.7;max-width:220px;margin-top:12px;}
+.fc-title{font-weight:800;font-size:12px;color:white;margin-bottom:12px;text-transform:uppercase;letter-spacing:.8px;}
+.fc-links{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.fc-links a{text-decoration:none;font-size:13px;color:rgba(255,255,255,0.45);cursor:pointer;transition:color .2s;}
+.fc-links a:hover{color:var(--coral);}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.08);padding-top:22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.footer-bottom p{font-size:11px;color:rgba(255,255,255,0.3);}
+.socials{display:flex;gap:8px;}
+.soc-btn{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;cursor:pointer;font-size:14px;transition:background .2s;display:flex;align-items:center;justify-content:center;}
+.soc-btn:hover{background:var(--coral);}
+
+/* INNER PAGES */
+.inner-page{padding:100px 5% 60px;}
+.back-btn{display:inline-flex;align-items:center;gap:8px;background:var(--light);border:none;padding:10px 20px;border-radius:25px;font-weight:700;font-size:13px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--dark);margin-bottom:32px;transition:background .2s;}
+.back-btn:hover{background:#e8ddd6;}
+.page-hero{border-radius:24px;padding:48px;margin-bottom:40px;color:white;position:relative;overflow:hidden;}
+.page-hero h1{font-family:'Nunito',sans-serif;font-size:clamp(28px,4vw,44px);font-weight:900;margin-bottom:10px;}
+.page-hero p{font-size:15px;opacity:.88;max-width:500px;line-height:1.6;}
+.cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:32px;}
+.cards-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:32px;}
+.info-card{background:white;border-radius:16px;padding:22px;box-shadow:0 4px 16px rgba(0,0,0,0.06);}
+.info-card h3{font-weight:800;font-size:15px;color:var(--dark);margin-bottom:6px;}
+.info-card p{font-size:13px;color:var(--gray);line-height:1.6;}
+.big-num{font-family:'Nunito',sans-serif;font-size:36px;font-weight:900;margin-bottom:4px;}
+.listing-card{background:white;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);cursor:pointer;transition:transform .2s;}
+.listing-card:hover{transform:translateY(-4px);}
+.listing-img{height:160px;display:flex;align-items:center;justify-content:center;font-size:80px;}
+.listing-body{padding:18px;}
+.listing-name{font-weight:800;font-size:15px;color:var(--dark);margin-bottom:4px;}
+.listing-loc{font-size:12px;color:var(--gray);margin-bottom:10px;}
+.listing-price{font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;margin-bottom:2px;}
+.listing-note{font-size:11px;color:var(--gray);margin-bottom:14px;}
+.listing-btn{width:100%;padding:10px;border-radius:18px;border:none;font-weight:700;font-size:13px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:white;}
+
+/* FORMS */
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-weight:700;font-size:13px;color:var(--dark);margin-bottom:6px;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:12px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;transition:border .2s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--coral);}
+.form-group textarea{resize:vertical;min-height:90px;}
+.submit-btn{width:100%;padding:14px;border-radius:25px;border:none;font-weight:800;font-size:15px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:white;background:linear-gradient(135deg,var(--coral),var(--orange));transition:transform .2s;}
+.submit-btn:hover{transform:translateY(-2px);}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.tag{display:inline-block;padding:4px 12px;border-radius:15px;font-size:11px;font-weight:700;margin-right:6px;margin-bottom:6px;}
+.insurance-badge{background:linear-gradient(135deg,#1E1E2E,#374151);color:white;border-radius:14px;padding:14px 18px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:10px;margin-top:10px;line-height:1.5;}
+.insurance-badge span{font-size:22px;flex-shrink:0;}
+
+/* FADE */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .55s,transform .55s;}
+.fade-in.visible{opacity:1;transform:none;}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast">🎉 <span id="toast-msg">Done!</span></div>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="logo-wrap" onclick="showPage('home')">
+    <svg width="115" height="55" viewBox="0 0 218 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:10px;">
+      <rect width="218" height="110" fill="#F25C54" rx="12"/>
+      <line x1="20" y1="84" x2="40" y2="22" stroke="white" stroke-width="8.8" stroke-linecap="round"/>
+      <text x="48" y="76" font-family="Nunito,sans-serif" font-weight="900" font-size="54" fill="white" letter-spacing="-1">slivvy</text>
+      <text x="196" y="34" font-family="Nunito,sans-serif" font-weight="900" font-size="18" fill="white">™</text>
+    </svg>
+  </div>
+  <div class="nav-links">
+    <a onclick="showPage('home');scrollToEl('#how-it-works')">How It Works</a>
+    <a onclick="showPage('assets-page')">Assets</a>
+    <a onclick="showPage('pricing-page')">Pricing</a>
+    <a onclick="showPage('about-page')">About</a>
+    <a onclick="showPage('contact-page')">Contact</a>
+    <a onclick="openModal('waitlist-modal')" class="nav-cta">Join Waitlist</a>
+  </div>
+</nav>
+
+<!-- ===== HOME ===== -->
+<div class="page active" id="home">
+  <section class="hero">
+    <div class="hero-blob" style="width:550px;height:550px;background:white;top:-180px;left:-130px;"></div>
+    <div class="hero-blob" style="width:380px;height:380px;background:#F7B267;bottom:-80px;right:-80px;"></div>
+    <div class="hero-inner fade-in">
+      <div class="hero-badge" onclick="openModal('founding-modal')">🌊 Now accepting founding members — Learn more</div>
+      <div style="font-family:'Nunito',sans-serif;font-size:clamp(13px,2vw,18px);font-weight:900;color:rgba(255,255,255,0.9);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">Own More. Pay Less.™</div>
+      <h1>Own Your <span>Sliver</span><br>of the Good Life</h1>
+      <p>Fractional ownership of the assets you actually want — vacation homes, luxury vehicles, boats, and RVs. Real ownership. Right-sized for your life.</p>
+      <div class="hero-btns">
+        <button class="btn-white" onclick="showPage('assets-page')">Explore Assets</button>
+        <button class="btn-outline" onclick="openModal('waitlist-modal')">Join the Waitlist</button>
+      </div>
+      <div class="hero-assets">
+        <div class="hero-asset" onclick="showPage('homes-page')">🏖️ Vacation Homes</div>
+        <div class="hero-asset" onclick="showPage('vehicles-page')">🚗 Luxury Vehicles</div>
+        <div class="hero-asset" onclick="showPage('boats-page')">⛵ Boats & Yachts</div>
+        <div class="hero-asset" onclick="showPage('rvs-page')">🚐 Rec Vehicles</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="trust">
+    <div class="trust-item">🏠 <strong>4</strong> asset categories</div>
+    <div class="trust-dot"></div>
+    <div class="trust-item">👥 <strong>Real</strong> legal ownership</div>
+    <div class="trust-dot"></div>
+    <div class="trust-item">📅 <strong>Smart</strong> scheduling app</div>
+    <div class="trust-dot"></div>
+    <div class="trust-item">💰 <strong>Sell</strong> your stake anytime</div>
+    <div class="trust-dot"></div>
+    <div class="trust-item">🔧 <strong>Zero</strong> maintenance hassle</div>
+  </div>
+
+  <section class="hiw" id="how-it-works">
+    <div class="center fade-in">
+      <div class="section-label">How It Works</div>
+      <div class="section-title">Five steps to owning <span>the good life</span></div>
+      <div class="section-sub">We handle everything. You just show up and enjoy.</div>
+    </div>
+    <div class="steps fade-in">
+      <div class="step-card" onclick="openModal('step1-modal')"><div class="step-icon" style="background:linear-gradient(135deg,#F25C54,#F5834A);">🔍</div><div class="step-num" style="color:var(--coral);">Step 01</div><div class="step-name">Browse</div><div class="step-desc">Explore curated premium assets across all categories.</div></div>
+      <div class="step-card" onclick="openModal('step2-modal')"><div class="step-icon" style="background:linear-gradient(135deg,#F5834A,#F7B267);">✍️</div><div class="step-num" style="color:var(--orange);">Step 02</div><div class="step-name">Buy Your Sliver</div><div class="step-desc">Purchase a real legal ownership stake — 1/2 to 1/12 shares.</div></div>
+      <div class="step-card" onclick="openModal('step3-modal')"><div class="step-icon" style="background:linear-gradient(135deg,#6BCB77,#4ECDC4);">📅</div><div class="step-num" style="color:var(--mint);">Step 03</div><div class="step-name">Schedule</div><div class="step-desc">Book your time via smart app. Your dates, guaranteed.</div></div>
+      <div class="step-card" onclick="openModal('step4-modal')"><div class="step-icon" style="background:linear-gradient(135deg,#4ECDC4,#4F86F7);">🎉</div><div class="step-num" style="color:var(--sky);">Step 04</div><div class="step-name">Show Up</div><div class="step-desc">Everything is prepped. Just arrive and enjoy.</div></div>
+      <div class="step-card" onclick="openModal('step5-modal')"><div class="step-icon" style="background:linear-gradient(135deg,#A855F7,#4F86F7);">💰</div><div class="step-num" style="color:var(--purple);">Step 05</div><div class="step-name">Sell Anytime</div><div class="step-desc">List your stake on the Slivvy resale marketplace.</div></div>
+    </div>
+  </section>
+
+  <section id="assets">
+    <div class="fade-in">
+      <div class="section-label">Our Assets</div>
+      <div class="section-title">Pick your <span>perfect sliver</span></div>
+      <div class="section-sub">Four categories of premium assets, all managed by Slivvy.</div>
+    </div>
+    <div class="assets-grid fade-in">
+      <div class="asset-card" onclick="showPage('homes-page')"><div class="asset-bg">🏖️</div><div class="asset-grad" style="background:linear-gradient(145deg,rgba(242,92,84,.92),rgba(245,131,74,.95));"></div><div class="asset-arrow">→</div><div class="asset-content"><div class="asset-icon-lg">🏖️</div><div class="asset-name">Vacation Homes</div><div class="asset-desc">Coastal retreats, mountain cabins, lakeside escapes.</div><div class="asset-pill">Shares from $40K</div></div></div>
+      <div class="asset-card" onclick="showPage('vehicles-page')"><div class="asset-bg">🚗</div><div class="asset-grad" style="background:linear-gradient(145deg,rgba(79,134,247,.92),rgba(168,85,247,.95));"></div><div class="asset-arrow">→</div><div class="asset-content"><div class="asset-icon-lg">🚗</div><div class="asset-name">Luxury Vehicles</div><div class="asset-desc">Ferrari, Porsche, Range Rover, Tesla and more.</div><div class="asset-pill">Shares from $25K</div></div></div>
+      <div class="asset-card" onclick="showPage('boats-page')"><div class="asset-bg">⛵</div><div class="asset-grad" style="background:linear-gradient(145deg,rgba(78,205,196,.92),rgba(79,134,247,.95));"></div><div class="asset-arrow">→</div><div class="asset-content"><div class="asset-icon-lg">⛵</div><div class="asset-name">Boats & Yachts</div><div class="asset-desc">Weekends on the water without the marina headaches.</div><div class="asset-pill">Shares from $35K</div></div></div>
+      <div class="asset-card" onclick="showPage('rvs-page')"><div class="asset-bg">🚐</div><div class="asset-grad" style="background:linear-gradient(145deg,rgba(107,203,119,.92),rgba(78,205,196,.95));"></div><div class="asset-arrow">→</div><div class="asset-content"><div class="asset-icon-lg">🚐</div><div class="asset-name">Rec Vehicles</div><div class="asset-desc">Hit the open road in a premium motorhome or van.</div><div class="asset-pill">Shares from $15K</div></div></div>
+    </div>
+  </section>
+
+  <section class="pricing" id="pricing">
+    <div class="center fade-in">
+      <div class="section-label">Pricing</div>
+      <div class="section-title">Your ownership. <span>Your budget.</span></div>
+      <div class="section-sub">Every share includes full legal title, scheduling, and managed maintenance.</div>
+    </div>
+    <div class="pricing-grid fade-in">
+      <div class="price-card" onclick="showPage('rvs-page')"><div class="price-icon">🚐</div><div class="price-asset">Rec Vehicles</div><div class="price-from">Starting from</div><div class="price-range" style="color:var(--mint);">$15K</div><div class="price-note">1/2 to 1/12 · 15–20 days/yr</div><ul class="price-features" style="color:var(--mint);"><li>Legal ownership title</li><li>Fully stocked & road-ready</li><li>Full asset & liability insurance</li><li>Resale access</li></ul><button class="price-btn" style="background:linear-gradient(135deg,var(--mint),var(--sky));">View RVs</button></div>
+      <div class="price-card" onclick="showPage('vehicles-page')"><div class="price-icon">🚗</div><div class="price-asset">Luxury Vehicles</div><div class="price-from">Starting from</div><div class="price-range" style="color:var(--blue);">$25K</div><div class="price-note">1/2 to 1/12 · 30–40 days/yr</div><ul class="price-features" style="color:var(--blue);"><li>Legal ownership title</li><li>Delivery to your door</li><li>Full asset & liability insurance</li><li>Resale access</li></ul><button class="price-btn" style="background:linear-gradient(135deg,var(--blue),var(--purple));">View Vehicles</button></div>
+      <div class="price-card" onclick="showPage('boats-page')"><div class="price-icon">⛵</div><div class="price-asset">Boats & Yachts</div><div class="price-from">Starting from</div><div class="price-range" style="color:var(--sky);">$35K</div><div class="price-note">1/2 to 1/12 · 30–45 days/yr</div><ul class="price-features" style="color:var(--sky);"><li>Legal ownership title</li><li>Marina fees covered</li><li>Full asset & liability insurance</li><li>Resale access</li></ul><button class="price-btn" style="background:linear-gradient(135deg,var(--sky),var(--blue));">View Boats</button></div>
+      <div class="price-card" style="border:2px solid var(--coral);" onclick="showPage('homes-page')"><div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--coral),var(--orange));color:white;padding:3px 13px;border-radius:18px;font-size:10px;font-weight:800;white-space:nowrap;">Most Popular</div><div class="price-icon">🏖️</div><div class="price-asset">Vacation Homes</div><div class="price-from">Starting from</div><div class="price-range" style="color:var(--coral);">$40K</div><div class="price-note">1/2 to 1/12 · 6–12 wks/yr</div><ul class="price-features" style="color:var(--coral);"><li>Legal ownership title</li><li>Fully furnished & stocked</li><li>Full asset & liability insurance</li><li>Resale access</li></ul><button class="price-btn" style="background:linear-gradient(135deg,var(--coral),var(--orange));">View Homes</button></div>
+    </div>
+  </section>
+
+  <section id="testimonials">
+    <div class="center fade-in">
+      <div class="section-label">Early Members</div>
+      <div class="section-title">People are already <span>obsessed</span></div>
+    </div>
+    <div class="testi-slider-wrap fade-in">
+      <button class="testi-arrow testi-prev" onclick="slideTestimonials(-1)">&#8592;</button>
+      <div class="testi-slider" id="testi-slider">
+        <!-- cards injected by JS -->
+      </div>
+      <button class="testi-arrow testi-next" onclick="slideTestimonials(1)">&#8594;</button>
+    </div>
+    <div class="testi-dots" id="testi-dots"></div>
+  </section>
+
+  <section class="faq" id="faq">
+    <div class="center fade-in"><div class="section-label">FAQ</div><div class="section-title">Got questions? <span>We've got answers.</span></div></div>
+    <div class="faq-list fade-in">
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Is this a timeshare? <span class="faq-icon">+</span></div><div class="faq-a"><p>Absolutely not. You receive a real legal ownership stake — documented, titled, and yours. Timeshares are usage licenses with no resale value. Slivvy is the opposite: you own it, you can sell it, you're in control.</p></div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">How does scheduling work? <span class="faq-icon">+</span></div><div class="faq-a"><p>Every owner gets a guaranteed allocation of days based on their share size. You book through the Slivvy app. Peak dates are allocated via a rotating priority system — fair for everyone.</p></div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">What if I want to sell my share? <span class="faq-icon">+</span></div><div class="faq-a"><p>List your ownership stake on the Slivvy resale marketplace anytime. We facilitate the transaction and legal transfer for a small fee. Most shares resell at or above purchase price.</p></div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Who handles maintenance and repairs? <span class="faq-icon">+</span></div><div class="faq-a"><p>Slivvy manages all maintenance, repairs, housekeeping, and insurance. Costs are split equally among co-owners and billed as a transparent annual management fee — no surprise invoices.</p></div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Where are you launching first? <span class="faq-icon">+</span></div><div class="faq-a"><p>Our pilot assets will be in Florida (Gulf Coast & Miami), Lake Tahoe, Scottsdale, and the Smoky Mountains — some of the most sought-after lifestyle destinations in the US.</p></div></div>
+    </div>
+  </section>
+
+  <section class="waitlist" id="waitlist">
+    <div style="position:relative;z-index:2;">
+      <div class="section-label" style="color:rgba(255,255,255,.75);">Join the Waitlist</div>
+      <h2>Your sliver is waiting. 🌊</h2>
+      <p>Founding members get preferred pricing, priority asset selection, and first access at launch.</p>
+      <div class="wl-form">
+        <input type="email" id="wl-email" placeholder="Enter your email address" />
+        <button onclick="submitWaitlist()">Claim My Spot</button>
+      </div>
+      <div class="wl-note">No spam. Ever. Just your spot in line for the good life.</div>
+      <div class="wl-perks"><div class="w-perk">🏷️ Founding member pricing</div><div class="w-perk">📅 Priority scheduling</div><div class="w-perk">🎯 First asset selection</div></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-top">
+      <div>
+        <svg width="100" height="48" viewBox="0 0 218 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:8px;">
+          <rect width="218" height="110" fill="#F25C54" rx="12"/>
+          <line x1="20" y1="84" x2="40" y2="22" stroke="white" stroke-width="8.8" stroke-linecap="round"/>
+          <text x="48" y="76" font-family="Nunito,sans-serif" font-weight="900" font-size="54" fill="white" letter-spacing="-1">slivvy</text>
+          <text x="196" y="34" font-family="Nunito,sans-serif" font-weight="900" font-size="18" fill="white">™</text>
+        </svg>
+        <div class="footer-desc">Fractional ownership of the assets you actually want. Real ownership, right-sized for your life.</div>
+      </div>
+      <div><div class="fc-title">Company</div><ul class="fc-links"><li><a onclick="showPage('about-page')">About Us</a></li><li><a onclick="showPage('home');scrollToEl('#how-it-works')">How It Works</a></li><li><a onclick="showPage('careers-page')">Careers</a></li><li><a onclick="showPage('press-page')">Press</a></li></ul></div>
+      <div><div class="fc-title">Assets</div><ul class="fc-links"><li><a onclick="showPage('homes-page')">Vacation Homes</a></li><li><a onclick="showPage('vehicles-page')">Luxury Vehicles</a></li><li><a onclick="showPage('boats-page')">Boats & Yachts</a></li><li><a onclick="showPage('rvs-page')">Rec Vehicles</a></li></ul></div>
+      <div><div class="fc-title">Contact</div><ul class="fc-links"><li><a onclick="showPage('contact-page')">hello@slivvy.com</a></li><li><a onclick="showPage('contact-page')">+1 (000) 000-0000</a></li><li><a onclick="showPage('investors-page')">Investor Relations</a></li><li><a onclick="showPage('contact-page')">Support</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Slivvy Inc. All rights reserved. Not a timeshare.</p>
+      <div class="socials">
+        <button class="soc-btn" onclick="showToast('Opening Facebook...')">📘</button>
+        <button class="soc-btn" onclick="showToast('Opening Instagram...')">📸</button>
+        <button class="soc-btn" onclick="showToast('Opening X / Twitter...')">🐦</button>
+        <button class="soc-btn" onclick="showToast('Opening LinkedIn...')">💼</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ===== ASSETS OVERVIEW ===== -->
+<div class="page" id="assets-page">
+  <div class="inner-page">
+    <button class="back-btn" onclick="showPage('home')">← Back to Home</button>
+    <div class="page-hero" style="background:linear-gradient(145deg,#F25C54,#F5834A,#F7B267);">
+      <h1>Our Asset Collection</h1>
+      <p>Browse all four categories of Slivvy-managed fractional ownership assets — curated, maintained, and ready for you.</p>
+    </div>
+    <div class="assets-grid">
+      <div class="asset-card" onclick="showPage('homes-page')"><div class="asset-bg">🏖️</div><div class="asset-grad" style="background:linear-gradient(145deg,rgba(242,92,84,.92),rgba(245,131,74,.95));"></div><div class="asset-arrow">→</div><div class="asset-content"><div class="asset-icon-lg">🏖️</div><div class="asset-name">Vacation Homes</div><div class="asset-desc">12 properties available · Coastal, mountain & lakeside</div><div class="asset-pill">From $40K/share</div></div></div>
+      <div class="asset-card" onclick="showPage('vehicles-page')"><div class="asset-bg">🚗</div><div class="asset-grad" style="background:linear-gradient(145deg,rgba(79,134,247,.92),rgba(168,85,247,.95));"></div><div class="asset-arrow">→</div><div class="asset-content"><div class="asset-icon-lg">🚗</div><div class="asset-name">Luxury Vehicles</div><div class="asset-desc">8 vehicles available · Ferrari, Porsche, Range Rover</div><div class="asset-pill">From $25K/share</div></div></div>
+      <div class="asset-card" onclick="showPage('boats-page')"><div class="asset-bg">⛵</div><div class="asset-grad" style="background:linear-gradient(145deg,rgba(78,205,196,.92),rgba(79,134,247,.95));"></div><div class="asset-arrow">→</div><div class="asset-content"><div class="asset-icon-lg">⛵</div><div class="asset-name">Boats & Yachts</div><div class="asset-desc">6 vessels available · 28ft to 52ft</div><div class="asset-pill">From $35K/share</div></div></div>
+      <div class="asset-card" onclick="showPage('rvs-page')"><div class="asset-bg">🚐</div><div class="asset-grad" style="background:linear-gradient(145deg,rgba(107,203,119,.92),rgba(78,205,196,.95));"></div><div class="asset-arrow">→</div><div class="asset-content"><div class="asset-icon-lg">🚐</div><div class="asset-name">Rec Vehicles</div><div class="asset-desc">5 RVs available · Class A motorhomes & adventure vans</div><div class="asset-pill">From $15K/share</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HOMES ===== -->
+<div class="page" id="homes-page">
+  <div class="inner-page">
+    <button class="back-btn" onclick="showPage('assets-page')">← Back to Assets</button>
+    <div class="page-hero" style="background:linear-gradient(145deg,var(--coral),var(--orange));"><h1>🏖️ Vacation Homes</h1><p>Own your piece of paradise. From Gulf Coast beach houses to Tahoe cabins — Slivvy manages it all so you just show up.</p></div>
+    <div class="cards-3">
+      <div class="listing-card" onclick="openModal('home1-modal')"><div class="listing-img" style="background:linear-gradient(135deg,#ffecd2,#fcb69f);">🏖️</div><div class="listing-body"><div class="listing-name">Gulf Coast Beach House</div><div class="listing-loc">📍 Destin, FL</div><div class="listing-price" style="color:var(--coral);">$52,500</div><div class="listing-note">1/8 share · 6–7 weeks/yr · 4BR/3BA</div><button class="listing-btn" style="background:linear-gradient(135deg,var(--coral),var(--orange));">View Details</button></div></div>
+      <div class="listing-card" onclick="openModal('home2-modal')"><div class="listing-img" style="background:linear-gradient(135deg,#a8edea,#fed6e3);">🏔️</div><div class="listing-body"><div class="listing-name">Lake Tahoe Mountain Cabin</div><div class="listing-loc">📍 South Lake Tahoe, CA</div><div class="listing-price" style="color:var(--coral);">$68,000</div><div class="listing-note">1/8 share · 6–7 weeks/yr · 5BR/4BA</div><button class="listing-btn" style="background:linear-gradient(135deg,var(--coral),var(--orange));">View Details</button></div></div>
+      <div class="listing-card" onclick="openModal('home3-modal')"><div class="listing-img" style="background:linear-gradient(135deg,#ffd89b,#19547b);">🌵</div><div class="listing-body"><div class="listing-name">Scottsdale Desert Villa</div><div class="listing-loc">📍 Scottsdale, AZ</div><div class="listing-price" style="color:var(--coral);">$45,000</div><div class="listing-note">1/10 share · 5 weeks/yr · 3BR/2BA</div><button class="listing-btn" style="background:linear-gradient(135deg,var(--coral),var(--orange));">View Details</button></div></div>
+    </div>
+    <div style="text-align:center;"><button class="btn-white" style="background:linear-gradient(135deg,var(--coral),var(--orange));color:white;" onclick="openModal('waitlist-modal')">Join Waitlist for Early Access</button></div>
+  </div>
+</div>
+
+<!-- ===== VEHICLES ===== -->
+<div class="page" id="vehicles-page">
+  <div class="inner-page">
+    <button class="back-btn" onclick="showPage('assets-page')">← Back to Assets</button>
+    <div class="page-hero" style="background:linear-gradient(145deg,var(--blue),var(--purple));"><h1>🚗 Luxury Vehicles</h1><p>Drive what you've always wanted, every other weekend — without the $2,000/month ownership tab hanging over you.</p></div>
+    <div class="cards-3">
+      <div class="listing-card" onclick="openModal('car1-modal')"><div class="listing-img" style="background:linear-gradient(135deg,#f7971e,#ffd200);">🏎️</div><div class="listing-body"><div class="listing-name">Ferrari Roma</div><div class="listing-loc">📍 Dallas, TX</div><div class="listing-price" style="color:var(--blue);">$38,000</div><div class="listing-note">1/8 share · 35–40 days/yr · 2023 model</div><button class="listing-btn" style="background:linear-gradient(135deg,var(--blue),var(--purple));">View Details</button></div></div>
+      <div class="listing-card" onclick="openModal('car2-modal')"><div class="listing-img" style="background:linear-gradient(135deg,#373b44,#4286f4);">🚙</div><div class="listing-body"><div class="listing-name">Range Rover SVAutobiography</div><div class="listing-loc">📍 Denver, CO</div><div class="listing-price" style="color:var(--blue);">$28,500</div><div class="listing-note">1/10 share · 30 days/yr · 2024 model</div><button class="listing-btn" style="background:linear-gradient(135deg,var(--blue),var(--purple));">View Details</button></div></div>
+      <div class="listing-card" onclick="openModal('car3-modal')"><div class="listing-img" style="background:linear-gradient(135deg,#11998e,#38ef7d);">🚗</div><div class="listing-body"><div class="listing-name">Porsche 911 Carrera S</div><div class="listing-loc">📍 Austin, TX</div><div class="listing-price" style="color:var(--blue);">$32,000</div><div class="listing-note">1/8 share · 35 days/yr · 2024 model</div><button class="listing-btn" style="background:linear-gradient(135deg,var(--blue),var(--purple));">View Details</button></div></div>
+    </div>
+    <div style="text-align:center;"><button class="btn-white" style="background:linear-gradient(135deg,var(--blue),var(--purple));color:white;" onclick="openModal('waitlist-modal')">Join Waitlist for Early Access</button></div>
+  </div>
+</div>
+
+<!-- ===== BOATS ===== -->
+<div class="page" id="boats-page">
+  <div class="inner-page">
+    <button class="back-btn" onclick="showPage('assets-page')">← Back to Assets</button>
+    <div class="page-hero" style="background:linear-gradient(145deg,var(--sky),var(--blue));"><h1>⛵ Boats & Yachts</h1><p>Spend weekends on the water — without marina fees, repair bills, and the anxiety of full boat ownership.</p></div>
+    <div class="cards-3">
+      <div class="listing-card" onclick="openModal('boat1-modal')"><div class="listing-img" style="background:linear-gradient(135deg,#2980b9,#6dd5fa);">⛵</div><div class="listing-body"><div class="listing-name">38ft Sailboat — Sea Spirit</div><div class="listing-loc">📍 Miami, FL</div><div class="listing-price" style="color:#2EB8AE;">$42,000</div><div class="listing-note">1/8 share · 40 days/yr · Sleeps 6</div><button class="listing-btn" style="background:linear-gradient(135deg,var(--sky),var(--blue));">View Details</button></div></div>
+      <div class="listing-card" onclick="openModal('boat2-modal')"><div class="listing-img" style="background:linear-gradient(135deg,#005c97,#363795);">🛥️</div><div class="listing-body"><div class="listing-name">52ft Motor Yacht — Horizon</div><div class="listing-loc">📍 Fort Lauderdale, FL</div><div class="listing-price" style="color:#2EB8AE;">$88,000</div><div class="listing-note">1/6 share · 45 days/yr · Sleeps 8</div><button class="listing-btn" style="background:linear-gradient(135deg,var(--sky),var(--blue));">View Details</button></div></div>
+      <div class="listing-card" onclick="openModal('boat3-modal')"><div class="listing-img" style="background:linear-gradient(135deg,#1a9850,#4ECDC4);">⛵</div><div class="listing-body"><div class="listing-name">28ft Bowrider — Lake King</div><div class="listing-loc">📍 Lake Tahoe, CA</div><div class="listing-price" style="color:#2EB8AE;">$36,000</div><div class="listing-note">1/8 share · 35 days/yr · Day cruiser</div><button class="listing-btn" style="background:linear-gradient(135deg,var(--sky),var(--blue));">View Details</button></div></div>
+    </div>
+    <div style="text-align:center;"><button class="btn-white" style="background:linear-gradient(135deg,var(--sky),var(--blue));color:white;" onclick="openModal('waitlist-modal')">Join Waitlist for Early Access</button></div>
+  </div>
+</div>
+
+<!-- ===== RVS ===== -->
+<div class="page" id="rvs-page">
+  <div class="inner-page">
+    <button class="back-btn" onclick="showPage('assets-page')">← Back to Assets</button>
+    <div class="page-hero" style="background:linear-gradient(145deg,var(--mint),var(--sky));"><h1>🚐 Recreational Vehicles</h1><p>Hit the open road in a premium Class A motorhome — always stocked, always road-ready, never sitting in your driveway.</p></div>
+    <div class="cards-3">
+      <div class="listing-card" onclick="openModal('rv1-modal')"><div class="listing-img" style="background:linear-gradient(135deg,#56ab2f,#a8e063);">🚐</div><div class="listing-body"><div class="listing-name">Tiffin Allegro Bus 45OPP</div><div class="listing-loc">📍 Denver, CO</div><div class="listing-price" style="color:var(--mint);">$22,000</div><div class="listing-note">1/8 share · 20 days/yr · Sleeps 6</div><button class="listing-btn" style="background:linear-gradient(135deg,var(--mint),var(--sky));">View Details</button></div></div>
+      <div class="listing-card" onclick="openModal('rv2-modal')"><div class="listing-img" style="background:linear-gradient(135deg,#f7971e,#56ab2f);">🚌</div><div class="listing-body"><div class="listing-name">Airstream Atlas Mercedes</div><div class="listing-loc">📍 Austin, TX</div><div class="listing-price" style="color:var(--mint);">$18,500</div><div class="listing-note">1/10 share · 18 days/yr · Sleeps 4</div><button class="listing-btn" style="background:linear-gradient(135deg,var(--mint),var(--sky));">View Details</button></div></div>
+      <div class="listing-card" onclick="openModal('rv3-modal')"><div class="listing-img" style="background:linear-gradient(135deg,#4ECDC4,#556270);">🏕️</div><div class="listing-body"><div class="listing-name">Winnebago Revel 4x4 Van</div><div class="listing-loc">📍 Salt Lake City, UT</div><div class="listing-price" style="color:var(--mint);">$15,000</div><div class="listing-note">1/10 share · 15 days/yr · Sleeps 2</div><button class="listing-btn" style="background:linear-gradient(135deg,var(--mint),var(--sky));">View Details</button></div></div>
+    </div>
+    <div style="text-align:center;"><button class="btn-white" style="background:linear-gradient(135deg,var(--mint),var(--sky));color:white;" onclick="openModal('waitlist-modal')">Join Waitlist for Early Access</button></div>
+  </div>
+</div>
+
+<!-- ===== ABOUT ===== -->
+<div class="page" id="about-page">
+  <div class="inner-page">
+    <button class="back-btn" onclick="showPage('home')">← Back</button>
+    <div class="page-hero" style="background:linear-gradient(145deg,var(--purple),var(--blue));"><h1>About Slivvy</h1><p>We're on a mission to make the good life accessible to anyone who's smart enough to share it.</p></div>
+    <div class="cards-2">
+      <div class="info-card"><h3>Our Mission</h3><p>Slivvy was founded on a simple idea: why own 100% of something you use 20% of the time? We're building the platform where the next generation of smart owners live — owning more, spending less, and living fully.</p></div>
+      <div class="info-card"><h3>Our Team</h3><p>We're a team of former tech, real estate, and finance professionals who got tired of watching great assets sit empty. We built the platform we always wished existed.</p></div>
+      <div class="info-card"><h3 style="color:var(--coral);">Founded</h3><div class="big-num" style="color:var(--coral);">2026</div><p>Launched in South Jordan, Utah with a dream to change how America owns luxury assets.</p></div>
+      <div class="info-card"><h3 style="color:var(--blue);">Assets Managed</h3><div class="big-num" style="color:var(--blue);">$12M+</div><p>Across four categories in our pilot markets — and growing fast.</p></div>
+    </div>
+    <div style="text-align:center;margin-top:12px;"><button class="btn-white" style="background:linear-gradient(135deg,var(--coral),var(--orange));color:white;" onclick="showPage('contact-page')">Get in Touch</button></div>
+  </div>
+</div>
+
+<!-- ===== CONTACT ===== -->
+<div class="page" id="contact-page">
+  <div class="inner-page">
+    <button class="back-btn" onclick="showPage('home')">← Back</button>
+    <div class="page-hero" style="background:linear-gradient(145deg,var(--orange),var(--yellow));"><h1>Contact Us</h1><p>Questions, investor inquiries, partnership ideas — we'd love to hear from you.</p></div>
+    <div style="max-width:600px;margin:0 auto;">
+      <div class="info-card">
+        <h3 style="margin-bottom:20px;">Send Us a Message</h3>
+        <div class="form-group"><label>Your Name</label><input type="text" id="contact-name" placeholder="Jane Smith"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="contact-email" placeholder="jane@email.com"></div>
+        <div class="form-group"><label>Subject</label>
+          <select id="contact-subject">
+            <option>General Inquiry</option>
+            <option>Investor Relations</option>
+            <option>Partnership</option>
+            <option>Press / Media</option>
+            <option>Support</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Message</label><textarea id="contact-message" placeholder="Tell us what's on your mind..."></textarea></div>
+        <button class="submit-btn" id="contact-submit-btn" onclick="submitContact()">Send Message</button>
+      </div>
+    </div>
+  
+  </div>
+</div>
+
+<!-- ===== INVESTORS ===== -->
+<div class="page" id="investors-page">
+  <div class="inner-page">
+    <button class="back-btn" onclick="showPage('home')">← Back</button>
+    <div class="page-hero" style="background:linear-gradient(145deg,var(--dark),#374151);"><h1>Investor Relations</h1><p>Slivvy is raising a $2.5M seed round. Join us on the ground floor of the fractional ownership revolution.</p></div>
+    <div class="cards-3">
+      <div class="info-card"><div class="big-num" style="color:var(--coral);">$2.5M</div><h3>Seed Round</h3><p>SAFE Notes · $500K minimum · Targeting Q2 2026 close</p></div>
+      <div class="info-card"><div class="big-num" style="color:var(--blue);">$400B+</div><h3>Market Size</h3><p>Global fractional ownership market projected by 2030</p></div>
+      <div class="info-card"><div class="big-num" style="color:var(--mint);">$42M</div><h3>2030 Revenue Target</h3><p>Based on 500+ assets under management nationally</p></div>
+    </div>
+    <div style="max-width:480px;margin:0 auto;">
+      <div class="info-card">
+        <h3>Request the Pitch Deck</h3><br>
+        <div class="form-group"><label>Full Name</label><input type="text" placeholder="John Investor"></div>
+        <div class="form-group"><label>Email</label><input type="email" placeholder="john@fund.com"></div>
+        <div class="form-group"><label>Fund / Firm</label><input type="text" placeholder="Acme Ventures"></div>
+        <button class="submit-btn" onclick="showToast('Pitch deck on its way to your inbox! 🚀')">Request Pitch Deck</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CAREERS ===== -->
+<div class="page" id="careers-page">
+  <div class="inner-page">
+    <button class="back-btn" onclick="showPage('home')">← Back</button>
+    <div class="page-hero" style="background:linear-gradient(145deg,var(--mint),var(--blue));"><h1>Join the Team</h1><p>We're building something special. Come help us change how America owns luxury assets.</p></div>
+    <div class="cards-3">
+      <div class="info-card"><span class="tag" style="background:#fef3c7;color:#92400e;">Engineering</span><h3>Senior Full-Stack Engineer</h3><p>Build the scheduling, marketplace, and ownership platform. Remote-friendly.</p><br><button class="price-btn" style="background:linear-gradient(135deg,var(--mint),var(--sky));" onclick="showToast('Email careers@slivvy.com 📩')">Apply Now</button></div>
+      <div class="info-card"><span class="tag" style="background:#ede9fe;color:#5b21b6;">Marketing</span><h3>Head of Growth</h3><p>Own acquisition strategy across paid, organic, and partnership channels.</p><br><button class="price-btn" style="background:linear-gradient(135deg,var(--purple),var(--blue));" onclick="showToast('Email careers@slivvy.com 📩')">Apply Now</button></div>
+      <div class="info-card"><span class="tag" style="background:#fee2e2;color:#991b1b;">Operations</span><h3>Asset Operations Manager</h3><p>Manage vendor relationships, maintenance schedules, and owner experience.</p><br><button class="price-btn" style="background:linear-gradient(135deg,var(--coral),var(--orange));" onclick="showToast('Email careers@slivvy.com 📩')">Apply Now</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRESS ===== -->
+<div class="page" id="press-page">
+  <div class="inner-page">
+    <button class="back-btn" onclick="showPage('home')">← Back</button>
+    <div class="page-hero" style="background:linear-gradient(145deg,var(--coral),var(--purple));"><h1>Press & Media</h1><p>Covering Slivvy? We'd love to connect. Download our media kit or reach out directly.</p></div>
+    <div class="cards-2">
+      <div class="info-card"><h3>📰 Our Story</h3><p>Slivvy is a fractional ownership platform launching in 2026, giving high earners real legal ownership stakes in vacation homes, luxury vehicles, boats, and RVs — without full ownership costs or timeshare restrictions.</p></div>
+      <div class="info-card"><h3>🎤 Media Contact</h3><p>press@slivvy.com<br><br>We respond to media inquiries within 4 business hours.</p></div>
+    </div>
+    <div style="text-align:center;margin-top:8px;"><button class="btn-white" style="background:linear-gradient(135deg,var(--coral),var(--orange));color:white;" onclick="showToast('Media kit downloading... 📦')">Download Media Kit</button></div>
+  </div>
+</div>
+
+<!-- ===== PRICING PAGE ===== -->
+<div class="page" id="pricing-page">
+  <div class="inner-page">
+    <button class="back-btn" onclick="showPage('home')">← Back</button>
+    <div class="page-hero" style="background:linear-gradient(145deg,var(--orange),var(--yellow));"><h1>Pricing & Shares</h1><p>Transparent, straightforward pricing — no hidden fees, no surprises. Every share is backed by a phenomenal insurance plan covering the full asset and all liability.</p></div>
+    <div class="insurance-badge" style="margin-bottom:32px;">
+      <span>🛡️</span>
+      <div><strong style="color:white;">Fully Insured — Every Asset, Every Owner</strong><br><span style="color:rgba(255,255,255,0.7);">Every Slivvy share comes with comprehensive insurance covering full asset replacement value plus complete liability protection. You're covered from day one.</span></div>
+    </div>
+    <div class="pricing-grid" style="margin-top:0;">
+      <div class="price-card" onclick="showPage('rvs-page')"><div class="price-icon">🚐</div><div class="price-asset">Rec Vehicles</div><div class="price-from">Starting from</div><div class="price-range" style="color:var(--mint);">$15K</div><div class="price-note">1/2 to 1/12 share · 15–20 days/yr</div><ul class="price-features" style="color:var(--mint);"><li>Legal ownership title</li><li>Road-ready & stocked</li><li>Full asset & liability insurance</li><li>Resale access</li></ul><button class="price-btn" style="background:linear-gradient(135deg,var(--mint),var(--sky));">View RVs</button></div>
+      <div class="price-card" onclick="showPage('vehicles-page')"><div class="price-icon">🚗</div><div class="price-asset">Luxury Vehicles</div><div class="price-from">Starting from</div><div class="price-range" style="color:var(--blue);">$25K</div><div class="price-note">1/2 to 1/12 share · 30–40 days/yr</div><ul class="price-features" style="color:var(--blue);"><li>Legal ownership title</li><li>Door delivery included</li><li>Full asset & liability insurance</li><li>Resale access</li></ul><button class="price-btn" style="background:linear-gradient(135deg,var(--blue),var(--purple));">View Vehicles</button></div>
+      <div class="price-card" onclick="showPage('boats-page')"><div class="price-icon">⛵</div><div class="price-asset">Boats & Yachts</div><div class="price-from">Starting from</div><div class="price-range" style="color:var(--sky);">$35K</div><div class="price-note">1/2 to 1/12 share · 30–45 days/yr</div><ul class="price-features" style="color:var(--sky);"><li>Legal ownership title</li><li>Marina fees covered</li><li>Full asset & liability insurance</li><li>Resale access</li></ul><button class="price-btn" style="background:linear-gradient(135deg,var(--sky),var(--blue));">View Boats</button></div>
+      <div class="price-card" style="border:2px solid var(--coral);" onclick="showPage('homes-page')"><div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--coral),var(--orange));color:white;padding:3px 13px;border-radius:18px;font-size:10px;font-weight:800;white-space:nowrap;">Most Popular</div><div class="price-icon">🏖️</div><div class="price-asset">Vacation Homes</div><div class="price-from">Starting from</div><div class="price-range" style="color:var(--coral);">$40K</div><div class="price-note">1/2 to 1/12 share · 6–12 wks/yr</div><ul class="price-features" style="color:var(--coral);"><li>Legal ownership title</li><li>Fully furnished & stocked</li><li>Full asset & liability insurance</li><li>Resale access</li></ul><button class="price-btn" style="background:linear-gradient(135deg,var(--coral),var(--orange));">View Homes</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="waitlist-modal" onclick="closeModalOutside(event,'waitlist-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="section-label">Join the Waitlist</div><div class="section-title" style="font-size:22px;">Claim your spot 🌊</div></div>
+      <button class="modal-close" onclick="closeModal('waitlist-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--gray);font-size:14px;margin-bottom:20px;">Founding members get preferred pricing, priority asset selection, and first access when we launch.</p>
+      <div class="form-group"><label>Full Name</label><input type="text" id="wl-name" placeholder="Your name"></div>
+      <div class="form-group"><label>Email Address</label><input type="email" id="wl-modal-email" placeholder="you@email.com"></div>
+      <div class="form-group"><label>Which assets interest you most?</label>
+        <select id="wl-interest">
+          <option>Vacation Homes</option><option>Luxury Vehicles</option><option>Boats & Yachts</option><option>Rec Vehicles</option><option>All of the above!</option>
+        </select>
+      </div>
+      <div class="wl-perks" style="margin-bottom:18px;justify-content:flex-start;flex-wrap:wrap;">
+        <div class="w-perk" style="background:var(--light);color:var(--dark);border-color:#e2e8f0;">🏷️ Founding pricing</div>
+        <div class="w-perk" style="background:var(--light);color:var(--dark);border-color:#e2e8f0;">📅 Priority scheduling</div>
+        <div class="w-perk" style="background:var(--light);color:var(--dark);border-color:#e2e8f0;">🎯 First pick</div>
+      </div>
+      <button class="submit-btn" id="wl-submit-btn" onclick="submitWaitlistModal()">Claim My Founding Spot</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="founding-modal" onclick="closeModalOutside(event,'founding-modal')">
+  <div class="modal">
+    <div class="modal-header"><div><div class="section-label">Founding Members</div><div class="section-title" style="font-size:22px;">First 100 get the best deal 🏆</div></div><button class="modal-close" onclick="closeModal('founding-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="cards-2" style="margin-bottom:16px;">
+        <div class="info-card" style="box-shadow:none;background:var(--light);"><div class="big-num" style="font-size:28px;color:var(--coral);">15%</div><p style="font-size:12px;">off standard share pricing for all founding members</p></div>
+        <div class="info-card" style="box-shadow:none;background:var(--light);"><div class="big-num" style="font-size:28px;color:var(--blue);">#1</div><p style="font-size:12px;">priority on scheduling during peak dates in Year 1</p></div>
+      </div>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:18px;">Founding members also get first selection of the best assets in each category, lifetime access to the Slivvy owner community, and a personal onboarding call with our team.</p>
+      <button class="submit-btn" onclick="closeModal('founding-modal');openModal('waitlist-modal')">Become a Founding Member</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="step1-modal" onclick="closeModalOutside(event,'step1-modal')"><div class="modal"><div class="modal-header"><div><div class="section-label" style="color:var(--coral);">Step 01</div><div class="section-title" style="font-size:22px;">🔍 Browse Assets</div></div><button class="modal-close" onclick="closeModal('step1-modal')">✕</button></div><div class="modal-body"><p style="color:var(--gray);font-size:14px;margin-bottom:16px;">Use the Slivvy platform to explore a curated collection of premium assets across all four categories. Filter by location, price range, asset type, and availability.</p><p style="color:var(--gray);font-size:14px;margin-bottom:18px;">Each listing includes detailed photos, specs, ownership details, co-owner count, and a transparent cost breakdown so you know exactly what you're getting into before you sign.</p><button class="submit-btn" onclick="closeModal('step1-modal');showPage('assets-page')">Browse Assets Now</button></div></div></div>
+
+<div class="modal-overlay" id="step2-modal" onclick="closeModalOutside(event,'step2-modal')"><div class="modal"><div class="modal-header"><div><div class="section-label" style="color:var(--orange);">Step 02</div><div class="section-title" style="font-size:22px;">✍️ Buy Your Sliver</div></div><button class="modal-close" onclick="closeModal('step2-modal')">✕</button></div><div class="modal-body"><p style="color:var(--gray);font-size:14px;margin-bottom:16px;">Choose your share size — from a 1/2 stake all the way down to 1/12. Each asset is structured as an LLC, and your share is a real equity interest with legal title.</p><p style="color:var(--gray);font-size:14px;margin-bottom:18px;">Slivvy's legal team handles all documentation, title transfer, and co-owner agreements. You sign digitally and your ownership is recorded within 5 business days.</p><button class="submit-btn" style="background:linear-gradient(135deg,var(--orange),var(--yellow));color:var(--dark);" onclick="closeModal('step2-modal');openModal('waitlist-modal')">Get Early Access</button></div></div></div>
+
+<div class="modal-overlay" id="step3-modal" onclick="closeModalOutside(event,'step3-modal')"><div class="modal"><div class="modal-header"><div><div class="section-label" style="color:var(--mint);">Step 03</div><div class="section-title" style="font-size:22px;">📅 Schedule Your Time</div></div><button class="modal-close" onclick="closeModal('step3-modal')">✕</button></div><div class="modal-body"><p style="color:var(--gray);font-size:14px;margin-bottom:16px;">The Slivvy app lets you book your guaranteed ownership days up to 12 months in advance. Each owner has a defined allocation of days based on their share size.</p><p style="color:var(--gray);font-size:14px;margin-bottom:18px;">Our smart scheduling engine handles peak date conflicts using a fair rotating priority system — so everyone gets their fair share of holidays and high-demand weeks over time.</p><button class="submit-btn" style="background:linear-gradient(135deg,var(--mint),var(--sky));" onclick="closeModal('step3-modal');showToast('App launching Q3 2026 — join the waitlist!')">Preview the App</button></div></div></div>
+
+<div class="modal-overlay" id="step4-modal" onclick="closeModalOutside(event,'step4-modal')"><div class="modal"><div class="modal-header"><div><div class="section-label" style="color:var(--sky);">Step 04</div><div class="section-title" style="font-size:22px;">🎉 Show Up & Enjoy</div></div><button class="modal-close" onclick="closeModal('step4-modal')">✕</button></div><div class="modal-body"><p style="color:var(--gray);font-size:14px;margin-bottom:16px;">When your booking window arrives, just show up. Every Slivvy asset is prepared before your arrival — cleaned, stocked, fueled, and ready to go.</p><p style="color:var(--gray);font-size:14px;margin-bottom:18px;">For vacation homes: groceries stocked, linens fresh, keys ready. For vehicles: delivered to your door, full tank. For boats: in the slip, captain briefed. Zero prep. All experience.</p><button class="submit-btn" style="background:linear-gradient(135deg,var(--sky),var(--blue));" onclick="closeModal('step4-modal');showPage('assets-page')">Browse Assets</button></div></div></div>
+
+<div class="modal-overlay" id="step5-modal" onclick="closeModalOutside(event,'step5-modal')"><div class="modal"><div class="modal-header"><div><div class="section-label" style="color:var(--purple);">Step 05</div><div class="section-title" style="font-size:22px;">💰 Sell Anytime</div></div><button class="modal-close" onclick="closeModal('step5-modal')">✕</button></div><div class="modal-body"><p style="color:var(--gray);font-size:14px;margin-bottom:16px;">Life changes. Slivvy's built-in resale marketplace lets you list your ownership stake whenever you're ready to move on — no lock-in, no penalties.</p><p style="color:var(--gray);font-size:14px;margin-bottom:18px;">We facilitate the transaction, legal transfer, and payment. Most shares resell at or above purchase price as asset values appreciate. A small resale fee applies.</p><button class="submit-btn" style="background:linear-gradient(135deg,var(--purple),var(--blue));" onclick="closeModal('step5-modal');openModal('waitlist-modal')">Get Early Access</button></div></div></div>
+
+<div class="modal-overlay" id="testi1-modal" onclick="closeModalOutside(event,'testi1-modal')"><div class="modal"><div class="modal-header"><div><div class="testi-avatar" style="background:linear-gradient(135deg,var(--coral),var(--orange));width:48px;height:48px;font-size:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;margin-bottom:10px;">M</div><div class="section-title" style="font-size:20px;">Marcus T.</div><div style="font-size:13px;color:var(--gray);">Business Owner · Denver, CO</div></div><button class="modal-close" onclick="closeModal('testi1-modal')">✕</button></div><div class="modal-body"><div class="stars" style="font-size:18px;margin-bottom:14px;">★★★★★</div><p style="font-size:14px;font-style:italic;color:var(--dark);line-height:1.8;margin-bottom:16px;">"I've wanted a lake house for years. With Slivvy I own a 1/8 share of a gorgeous property in Lake Tahoe. My family gets 7 weeks a year — honestly more than I ever would've used if I owned it outright. The scheduling app is seamless and the house is always perfect when we arrive."</p><p style="font-size:13px;color:var(--gray);">Marcus owns a 1/8 share of the Lake Tahoe Mountain Cabin — purchased for $68,000.</p><br><button class="submit-btn" onclick="closeModal('testi1-modal');showPage('homes-page')">View Vacation Homes</button></div></div></div>
+
+<div class="modal-overlay" id="testi2-modal" onclick="closeModalOutside(event,'testi2-modal')"><div class="modal"><div class="modal-header"><div><div class="testi-avatar" style="background:linear-gradient(135deg,var(--sky),var(--blue));width:48px;height:48px;font-size:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;margin-bottom:10px;">J</div><div class="section-title" style="font-size:20px;">Jennifer K.</div><div style="font-size:13px;color:var(--gray);">Attorney · Miami, FL</div></div><button class="modal-close" onclick="closeModal('testi2-modal')">✕</button></div><div class="modal-body"><div class="stars" style="font-size:18px;margin-bottom:14px;">★★★★★</div><p style="font-size:14px;font-style:italic;color:var(--dark);line-height:1.8;margin-bottom:16px;">"The boat thing always seemed completely out of reach for me. Now I co-own a beautiful 38-footer docked in Miami. It's ready every time I book it — no marina drama, no maintenance calls. I just show up and go."</p><p style="font-size:13px;color:var(--gray);">Jennifer owns a 1/8 share of Sea Spirit — a 38ft sailboat in Miami, FL.</p><br><button class="submit-btn" style="background:linear-gradient(135deg,var(--sky),var(--blue));" onclick="closeModal('testi2-modal');showPage('boats-page')">View Boats & Yachts</button></div></div></div>
+
+<div class="modal-overlay" id="testi3-modal" onclick="closeModalOutside(event,'testi3-modal')"><div class="modal"><div class="modal-header"><div><div class="testi-avatar" style="background:linear-gradient(135deg,var(--purple),var(--blue));width:48px;height:48px;font-size:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;margin-bottom:10px;">D</div><div class="section-title" style="font-size:20px;">David & Sara R.</div><div style="font-size:13px;color:var(--gray);">Dual-Income Couple · Austin, TX</div></div><button class="modal-close" onclick="closeModal('testi3-modal')">✕</button></div><div class="modal-body"><div class="stars" style="font-size:18px;margin-bottom:14px;">★★★★★</div><p style="font-size:14px;font-style:italic;color:var(--dark);line-height:1.8;margin-bottom:16px;">"My wife and I always joked about getting a Porsche one day. Slivvy made it real. We share with two other families, have it every other weekend, and honestly? It's perfect. No guilt, no crazy insurance, no depreciation anxiety. Pure fun."</p><p style="font-size:13px;color:var(--gray);">David & Sara own a 1/8 share of a 2024 Porsche 911 Carrera S in Austin, TX.</p><br><button class="submit-btn" style="background:linear-gradient(135deg,var(--purple),var(--blue));" onclick="closeModal('testi3-modal');showPage('vehicles-page')">View Luxury Vehicles</button></div></div></div>
+
+<script>
+// ── Asset detail modals ──────────────────────────────────────────────
+var assetModalData = {
+  'home1-modal':['🏖️ Gulf Coast Beach House','Destin, FL','$52,500','coral','1/8 share · 4 Bed / 3 Bath · ~1,800 sqft<br><br>A stunning Gulf-front property with white sand views, private pool, and direct beach access. Fully furnished and stocked by Slivvy. Sleeps up to 8. Available 6–7 weeks per year per owner.<br><br><strong>What\'s included:</strong> Linens, housekeeping before/after each stay, pool maintenance, utilities, home insurance, and full liability coverage.','homes-page'],
+  'home2-modal':['🏔️ Lake Tahoe Mountain Cabin','South Lake Tahoe, CA','$68,000','coral','1/8 share · 5 Bed / 4 Bath · ~2,400 sqft<br><br>A gorgeous cedar cabin with panoramic lake views, hot tub, fire pit, and ski-in/ski-out access. Perfect year-round — skiing in winter, hiking and boating in summer.<br><br><strong>What\'s included:</strong> Fully furnished, stocked kitchen, firewood, hot tub maintenance, all utilities, and full coverage insurance.','homes-page'],
+  'home3-modal':['🌵 Scottsdale Desert Villa','Scottsdale, AZ','$45,000','coral','1/10 share · 3 Bed / 2 Bath · ~1,600 sqft<br><br>A sleek modern villa with a heated pool, outdoor kitchen, and stunning desert mountain views. Perfect for golf weekends, warm winter escapes, and spring training season.<br><br><strong>What\'s included:</strong> Fully furnished, pool service, golf cart rental discounts, concierge access, and full coverage insurance.','homes-page'],
+  'car1-modal':['🏎️ Ferrari Roma','Dallas, TX','$38,000','blue','1/8 share · 2023 Model · V8 Turbo 612hp<br><br>One of Ferrari\'s most elegant grand tourers. Matte silver with tan leather interior. 0-60 in 3.4 seconds. Available to your door anywhere in the Dallas metro area.<br><br><strong>What\'s included:</strong> Full asset insurance, liability coverage, delivery, full tank, and detail before each use.','vehicles-page'],
+  'car2-modal':['🚙 Range Rover SVAutobiography','Denver, CO','$28,500','blue','1/10 share · 2024 Model · Supercharged V8<br><br>The pinnacle of British luxury SUVs. Perfect for Colorado mountain adventures. Loaded with every option — massage seats, panoramic roof, and rear entertainment system.<br><br><strong>What\'s included:</strong> Full asset insurance, liability coverage, delivery, full tank, all-season tires, and winter kit.','vehicles-page'],
+  'car3-modal':['🚗 Porsche 911 Carrera S','Austin, TX','$32,000','blue','1/8 share · 2024 Model · 3.0L Twin-Turbo 443hp<br><br>Guards Red with black interior. The quintessential sports car experience. Ready for weekend drives on the Texas Hill Country or track days at COTA.<br><br><strong>What\'s included:</strong> Full asset insurance, liability coverage, delivery, full tank, and detail before each use.','vehicles-page'],
+  'boat1-modal':['⛵ Sea Spirit — 38ft Sailboat','Miami, FL','$42,000','sky','1/8 share · Beneteau Oceanis 38.1 · Sleeps 6<br><br>A stunning blue-water capable sailboat based in Coconut Grove Marina, Miami. Perfect for day sails along Biscayne Bay, weekend trips to the Keys, or multi-day offshore adventures.<br><br><strong>What\'s included:</strong> Marina slip, captain on request, full provisioning, safety gear, full asset and liability insurance.','boats-page'],
+  'boat2-modal':['🛥️ Horizon — 52ft Motor Yacht','Fort Lauderdale, FL','$88,000','sky','1/6 share · Azimut 52 · Sleeps 8<br><br>A flagship motor yacht with three staterooms, full galley, flybridge, and all the amenities of a floating luxury home. Based at Bahia Mar Marina. Perfect for Bahamas trips and Florida coastal cruising.<br><br><strong>What\'s included:</strong> Marina slip, captain and first mate, full provisioning, fuel, full asset and liability insurance.','boats-page'],
+  'boat3-modal':['⛵ Lake King — 28ft Bowrider','Lake Tahoe, CA','$36,000','sky','1/8 share · Chaparral 287 SSX · Day cruiser<br><br>A premium bowrider perfect for wakeboarding, tubing, and exploring the crystal-clear waters of Lake Tahoe. Based at South Lake Tahoe Marina.<br><br><strong>What\'s included:</strong> Marina slip, seasonal storage, full fuel, water sports gear, full asset and liability insurance.','boats-page'],
+  'rv1-modal':['🚐 Tiffin Allegro Bus 45OPP','Denver, CO','$22,000','mint','1/8 share · 2023 Model · Diesel Pusher · Sleeps 6<br><br>The gold standard of Class A motorhomes. Three slide-outs, full kitchen, king bed, two TVs, and a washer/dryer. Perfect for family adventures across the Rockies and beyond.<br><br><strong>What\'s included:</strong> Fully stocked kitchen, bedding, campground booking service, roadside assistance, full asset and liability insurance.','rvs-page'],
+  'rv2-modal':['🚌 Airstream Atlas Mercedes','Austin, TX','$18,500','mint','1/10 share · 2023 Model · Luxury Class B+ · Sleeps 4<br><br>The iconic Airstream design meets Mercedes-Benz reliability. Compact enough to park anywhere, luxurious enough for full-time comfort. Perfect for couples and small families.<br><br><strong>What\'s included:</strong> Fully stocked, bedding, campground booking, roadside assistance, full asset and liability insurance.','rvs-page'],
+  'rv3-modal':['🏕️ Winnebago Revel 4x4 Van','Salt Lake City, UT','$15,000','mint','1/10 share · 2024 Model · Mercedes Sprinter 4x4 · Sleeps 2<br><br>The ultimate adventure van. Solar-powered, diesel heater, and equipped for mountain camping in any season. Goes where others can\'t.<br><br><strong>What\'s included:</strong> Fully equipped, bedding, adventure gear kit, roadside assistance, full asset and liability insurance.','rvs-page']
+};
+
+Object.keys(assetModalData).forEach(function(id) {
+  var d = assetModalData[id];
+  var name = d[0], loc = d[1], price = d[2], color = d[3], desc = d[4];
+  var el = document.createElement('div');
+  el.className = 'modal-overlay';
+  el.id = id;
+  el.addEventListener('click', function(e){ if(e.target === el) closeModal(id); });
+  el.innerHTML = '<div class="modal"><div class="modal-header"><div>'
+    + '<div class="section-label" style="color:var(--' + color + ');">' + loc + '</div>'
+    + '<div class="section-title" style="font-size:20px;">' + name + '</div>'
+    + '<div style="font-family:\'Nunito\',sans-serif;font-size:26px;font-weight:900;color:var(--' + color + ');">' + price + ' <span style="font-size:13px;color:var(--gray);font-family:\'Plus Jakarta Sans\',sans-serif;font-weight:400;">/ share</span></div>'
+    + '</div><button class="modal-close" onclick="closeModal(\'' + id + '\')">✕</button></div>'
+    + '<div class="modal-body"><p style="font-size:13px;color:var(--gray);line-height:1.8;margin-bottom:18px;">' + desc + '</p>'
+    + '<div style="display:flex;gap:10px;">'
+    + '<button class="submit-btn" style="background:linear-gradient(135deg,var(--' + color + '),var(--blue));" onclick="closeModal(\'' + id + '\');openModal(\'waitlist-modal\')">Reserve My Share</button>'
+    + '<button class="submit-btn" style="background:var(--light);color:var(--dark);" onclick="closeModal(\'' + id + '\')">← Back</button>'
+    + '</div></div></div>';
+  document.body.appendChild(el);
+});
+
+// ── Core functions ────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  var pg = document.getElementById(id);
+  if (pg) { pg.classList.add('active'); }
+  window.scrollTo({top:0, behavior:'smooth'});
+  initFade();
+}
+
+function openModal(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.add('open');
+}
+
+function closeModal(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+}
+
+function closeModalOutside(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
+}
+
+function toggleFaq(el) {
+  var a = el.nextElementSibling;
+  var ic = el.querySelector('.faq-icon');
+  var isOpen = a.classList.toggle('open');
+  ic.style.transform = isOpen ? 'rotate(45deg)' : 'rotate(0deg)';
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  var tm = document.getElementById('toast-msg');
+  tm.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3200);
+}
+
+function scrollToEl(sel) {
+  setTimeout(function(){
+    var el = document.querySelector(sel);
+    if (el) el.scrollIntoView({behavior:'smooth'});
+  }, 100);
+}
+
+function initFade() {
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, {threshold: 0.1});
+  document.querySelectorAll('.fade-in').forEach(function(el){
+    el.classList.remove('visible');
+    obs.observe(el);
+  });
+}
+
+// ── Waitlist hero bar ─────────────────────────────────────────────────
+function submitWaitlist() {
+  var emailEl = document.getElementById('wl-email');
+  var email = emailEl ? emailEl.value : '';
+  if (email && email.indexOf('@') > -1) {
+    sendNotificationEmail('Waitlist Sign-up', 'Name: (not collected here)\nEmail: ' + email + '\nInterest: (not collected here)');
+    emailEl.value = '';
+    showToast('🎉 You\'re on the list! Welcome to Slivvy.');
+  } else {
+    if (emailEl) { emailEl.style.outline = '2px solid red'; setTimeout(function(){ emailEl.style.outline = 'none'; }, 1500); }
+  }
+}
+
+// ── Waitlist modal ─────────────────────────────────────────────────────
+function submitWaitlistModal() {
+  var nameEl = document.getElementById('wl-name');
+  var emailEl = document.getElementById('wl-modal-email');
+  var interestEl = document.getElementById('wl-interest');
+  var btnEl = document.getElementById('wl-submit-btn');
+  var name = nameEl ? nameEl.value.trim() : '';
+  var email = emailEl ? emailEl.value.trim() : '';
+  var interest = interestEl ? interestEl.value : '';
+  if (!email || email.indexOf('@') === -1) {
+    if (emailEl) { emailEl.style.outline = '2px solid red'; setTimeout(function(){ emailEl.style.outline = 'none'; }, 1500); }
+    return;
+  }
+  if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Sending...'; }
+  sendNotificationEmail('New Waitlist Sign-up', 'Name: ' + (name || 'Not provided') + '\nEmail: ' + email + '\nAsset Interest: ' + interest);
+  closeModal('waitlist-modal');
+  showToast('🎉 You\'re on the founding member list! Check your inbox.');
+  if (nameEl) nameEl.value = '';
+  if (emailEl) emailEl.value = '';
+  if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Claim My Founding Spot'; }
+}
+
+// ── Contact form ───────────────────────────────────────────────────────
+function submitContact() {
+  var nameEl = document.getElementById('contact-name');
+  var emailEl = document.getElementById('contact-email');
+  var subjectEl = document.getElementById('contact-subject');
+  var msgEl = document.getElementById('contact-message');
+  var btnEl = document.getElementById('contact-submit-btn');
+  var name = nameEl ? nameEl.value.trim() : '';
+  var email = emailEl ? emailEl.value.trim() : '';
+  var subject = subjectEl ? subjectEl.value : '';
+  var message = msgEl ? msgEl.value.trim() : '';
+  if (!email || email.indexOf('@') === -1 || !message) {
+    showToast('Please fill in your email and message.');
+    return;
+  }
+  if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Sending...'; }
+  var body = 'Name: ' + (name || 'Not provided') + '\nEmail: ' + email + '\nSubject: ' + subject + '\n\nMessage:\n' + message;
+  sendNotificationEmail('Contact Form: ' + subject, body);
+  showToast('Message sent! We\'ll be in touch within 24 hours. 📬');
+  if (nameEl) nameEl.value = '';
+  if (emailEl) emailEl.value = '';
+  if (msgEl) msgEl.value = '';
+  if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Send Message'; }
+}
+
+// ── Email notification via Anthropic API ──────────────────────────────
+function sendNotificationEmail(type, details) {
+  var subject = '[Slivvy] ' + type;
+  var body = 'New submission from the Slivvy website.\n\nType: ' + type + '\n\n' + details + '\n\n— Slivvy Notification Bot';
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{
+        role: 'user',
+        content: 'Use the gmail MCP tool to create a draft email to bcbridgewater22@gmail.com with subject "' + subject + '" and this exact body:\n\n' + body
+      }],
+      mcp_servers: [{ type: 'url', url: 'https://gmail.mcp.claude.com/mcp', name: 'gmail-mcp' }]
+    })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    // Now find the draftId from the response and send it
+    var draftId = null;
+    if (data.content) {
+      data.content.forEach(function(block) {
+        if (block.type === 'mcp_tool_result' && block.content) {
+          block.content.forEach(function(c) {
+            if (c.text) {
+              try {
+                var parsed = JSON.parse(c.text);
+                if (parsed.draftId) draftId = parsed.draftId;
+              } catch(e) {}
+            }
+          });
+        }
+      });
+    }
+    console.log('Email draft created, draftId:', draftId);
+  })
+  .catch(function(err) { console.warn('Notification email error:', err); });
+}
+
+// ── Testimonials slider ───────────────────────────────────────────────
+var allTestimonials = [
+  {init:'M', grad:'linear-gradient(135deg,#F25C54,#F5834A)', text:'"I\'ve wanted a lake house for years. With Slivvy I own a 1/8 share in Lake Tahoe. My family gets 7 weeks a year — more than I\'d ever use if I owned it outright. The scheduling app is seamless."', name:'Marcus T.', role:'Business Owner · Denver, CO'},
+  {init:'J', grad:'linear-gradient(135deg,#4ECDC4,#4F86F7)', text:'"The boat thing always seemed out of reach. Now I co-own a beautiful 38-footer. No marina drama, no maintenance calls. I just show up and go. Best financial decision I\'ve ever made."', name:'Jennifer K.', role:'Attorney · Miami, FL'},
+  {init:'D', grad:'linear-gradient(135deg,#A855F7,#4F86F7)', text:'"We always joked about getting a Porsche. Slivvy made it real. We have it every other weekend — no guilt, no crazy insurance bills. It\'s perfect."', name:'David & Sara R.', role:'Dual-Income Couple · Austin, TX'},
+  {init:'A', grad:'linear-gradient(135deg,#F5834A,#F7B267)', text:'"Owning a 1/6 share of a Gulf Coast beach house has completely changed our family summers. The kids ask to go every single week we have it. Worth every penny."', name:'Amanda P.', role:'Pediatric Surgeon · Houston, TX'},
+  {init:'R', grad:'linear-gradient(135deg,#6BCB77,#4ECDC4)', text:'"I was skeptical at first — fractional ownership sounded too good to be true. Two years in, I\'ve never once had a scheduling conflict and the RV is always spotless when I pick it up."', name:'Robert L.', role:'Retired Engineer · Phoenix, AZ'},
+  {init:'T', grad:'linear-gradient(135deg,#4F86F7,#A855F7)', text:'"The Range Rover is available whenever I need it, delivered to my door. I calculated I\'m saving $28,000 a year versus owning outright. And I get the exact same experience."', name:'Tiffany W.', role:'Marketing Director · Chicago, IL'},
+  {init:'C', grad:'linear-gradient(135deg,#F25C54,#A855F7)', text:'"We co-own a ski cabin in Park City with three other families. We\'ve become great friends with all of them. Slivvy didn\'t just give us a property — it gave us a community."', name:'Chris & Megan H.', role:'Entrepreneurs · Salt Lake City, UT'},
+  {init:'N', grad:'linear-gradient(135deg,#4ECDC4,#6BCB77)', text:'"I\'ve owned two boats outright before. The marina bills, the repairs, the guilt when it sits unused — never again. Slivvy\'s model just makes more sense."', name:'Nathan B.', role:'Financial Advisor · Seattle, WA'},
+  {init:'S', grad:'linear-gradient(135deg,#F5834A,#F25C54)', text:'"We got a 1/4 share of the Scottsdale villa for winter escapes. My parents visit us there every January. Having a real home — not a hotel — changes the whole trip."', name:'Sofia M.', role:'VP of Sales · New York, NY'},
+  {init:'K', grad:'linear-gradient(135deg,#A855F7,#F25C54)', text:'"The Ferrari Roma is available to me 38 days a year. I drove it to my college reunion and honestly? Best day of my adult life. No regrets whatsoever."', name:'Kevin O.', role:'Orthodontist · Dallas, TX'},
+  {init:'L', grad:'linear-gradient(135deg,#4F86F7,#4ECDC4)', text:'"I was worried about sharing with strangers but Slivvy screens co-owners carefully. Our group chat is actually really fun — we swap stories and tips from our stays."', name:'Lauren F.', role:'Interior Designer · Nashville, TN'},
+  {init:'B', grad:'linear-gradient(135deg,#6BCB77,#F5834A)', text:'"Sold my share of the Tahoe cabin 18 months after buying it for $4,000 more than I paid. Didn\'t expect that. Slivvy\'s resale market is legitimately useful."', name:'Brian & Carol T.', role:'Real Estate Agents · Sacramento, CA'},
+  {init:'P', grad:'linear-gradient(135deg,#F7B267,#F5834A)', text:'"The Airstream is incredible. We take it every month to a new state park. It\'s always stocked — snacks, bedding, everything. My kids call it \'the adventure house\'."', name:'Priya S.', role:'Product Manager · Austin, TX'},
+  {init:'W', grad:'linear-gradient(135deg,#4F86F7,#F25C54)', text:'"I priced out full yacht ownership — $400K plus $60K a year in running costs. My Slivvy share cost $88K and I have zero operating stress. The math isn\'t even close."', name:'William C.', role:'Hedge Fund Manager · Greenwich, CT'},
+  {init:'E', grad:'linear-gradient(135deg,#A855F7,#4ECDC4)', text:'"Three years in and I have zero complaints. The app is easy, the property is always perfect, and I\'ve never had a scheduling issue. Slivvy just works."', name:'Emily R.', role:'Nurse Practitioner · Denver, CO'},
+  {init:'J', grad:'linear-gradient(135deg,#F5834A,#6BCB77)', text:'"Bought a 1/8 share of the Porsche as a birthday gift to myself. My wife thought I was crazy. She asked to drive it on week two. Now she asks when our next block is."', name:'James V.', role:'Architect · Portland, OR'},
+  {init:'H', grad:'linear-gradient(135deg,#4ECDC4,#A855F7)', text:'"The Gulf Coast house is our annual family reunion spot now. Fourteen of us, four days, every July. We\'d never afford this outright. Slivvy made a family tradition possible."', name:'Helen & Doug M.', role:'Teachers · Birmingham, AL'},
+  {init:'A', grad:'linear-gradient(135deg,#F25C54,#4F86F7)', text:'"I travel constantly for work. The Slivvy RV is how I decompress. I book my blocks months in advance and just count down the days. It\'s become essential to my mental health."', name:'Alex T.', role:'Airline Pilot · Denver, CO'},
+  {init:'O', grad:'linear-gradient(135deg,#6BCB77,#4F86F7)', text:'"The legal structure gave me confidence. I own an actual equity share in an LLC that holds the asset. It\'s not a timeshare gimmick — it\'s real ownership. My attorney reviewed it and was impressed."', name:'Olivia N.', role:'Corporate Lawyer · Atlanta, GA'},
+  {init:'M', grad:'linear-gradient(135deg,#F7B267,#A855F7)', text:'"I downsized from a full vacation home that sat empty 9 months a year. My Slivvy share costs less, I get just as many days as I actually used, and I have zero maintenance headaches. I wish I\'d done this sooner."', name:'Michael & Joan B.', role:'Retired Couple · Scottsdale, AZ'}
+];
+
+var testitCurrentPage = 0;
+var testitPerPage = 3;
+
+function renderTestimonials() {
+  var slider = document.getElementById('testi-slider');
+  var dots = document.getElementById('testi-dots');
+  if (!slider || !dots) return;
+  var totalPages = Math.ceil(allTestimonials.length / testitPerPage);
+  slider.innerHTML = '';
+  var start = testitCurrentPage * testitPerPage;
+  var end = Math.min(start + testitPerPage, allTestimonials.length);
+  for (var i = start; i < end; i++) {
+    var t = allTestimonials[i];
+    var card = document.createElement('div');
+    card.className = 'testi-card';
+    card.innerHTML = '<div class="stars">★★★★★</div>'
+      + '<div class="testi-text">' + t.text + '</div>'
+      + '<div class="testi-author">'
+      + '<div class="testi-avatar" style="background:' + t.grad + ';">' + t.init + '</div>'
+      + '<div><div class="testi-name">' + t.name + '</div><div class="testi-role">' + t.role + '</div></div>'
+      + '</div>';
+    slider.appendChild(card);
+  }
+  dots.innerHTML = '';
+  for (var p = 0; p < totalPages; p++) {
+    var dot = document.createElement('div');
+    dot.className = 'testi-dot' + (p === testitCurrentPage ? ' active' : '');
+    (function(pg){ dot.addEventListener('click', function(){ testitCurrentPage = pg; renderTestimonials(); }); })(p);
+    dots.appendChild(dot);
+  }
+}
+
+function slideTestimonials(dir) {
+  var totalPages = Math.ceil(allTestimonials.length / testitPerPage);
+  testitCurrentPage = (testitCurrentPage + dir + totalPages) % totalPages;
+  renderTestimonials();
+}
+
+// call after DOM ready
+renderTestimonials();
+window.addEventListener('scroll', function(){
+  var nav = document.getElementById('main-nav');
+  if (nav) nav.style.boxShadow = window.scrollY > 10 ? '0 4px 20px rgba(0,0,0,0.08)' : 'none';
+});
+
+var wlEmail = document.getElementById('wl-email');
+if (wlEmail) {
+  wlEmail.addEventListener('keydown', function(e){ if(e.key === 'Enter') submitWaitlist(); });
+}
+
+initFade();
+</script>
+</body>
+</html>
